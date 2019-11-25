@@ -1,0 +1,58 @@
+version: "3"
+
+services:
+  ###############################
+  #   Setup server container
+  ###############################
+
+  server:
+    build: ./server
+    expose:
+      - ${APP_SERVER_PORT}
+    environment:
+      - API_HOST=${API_HOST}
+      - APP_SERVER_PORT=${APP_SERVER_PORT}
+    ports:
+      - ${APP_SERVER_PORT}:${APP_SERVER_PORT}
+    volumes:
+      - ./server:/app/server
+    depends_on:
+      - db
+    command: npm run dev
+
+  ###############################
+  #   Setup client container
+  ###############################
+
+  client:
+    build: ./client
+    expose:
+      - ${REACT_APP_PORT}
+    environment:
+      - REACT_APP_PORT=${REACT_APP_PORT}
+    ports:
+      - ${REACT_APP_PORT}:${REACT_APP_PORT}
+    volumes:
+      - ./client/src:/app/client/src
+      - ./client/public:/app/client/public
+    # depends_on:
+    # - server
+    # - database
+    links:
+      - server
+    command: npm run start
+
+  ###############################
+  #   Setup database container
+  ###############################
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: test
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - "54320:5432"
